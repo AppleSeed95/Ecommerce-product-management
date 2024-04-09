@@ -21,8 +21,9 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { styled } from '@mui/material/styles';
 import Skeleton from '@mui/material/Skeleton';
 import LinearProgress from '@mui/material/LinearProgress';
-
-
+import { useMutation } from '@apollo/client';
+import { CREATE_CATEGORY_MUTATION } from '../../graphql/mutations';
+import { CREATE_PRODUCT_MUTATION } from '../../graphql/mutations';
 
 interface ProductDrawerProps {
     open: boolean;
@@ -33,6 +34,30 @@ export default function ProductDrawerCpn({ open, openDrawer }: ProductDrawerProp
     const [openDialog, setOpenDialog] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false)
     const [tempImageSrc, setTempImageSrc] = React.useState<string | ArrayBuffer | null>(null);
+    const [createCategory, { data, loading, error }] = useMutation(CREATE_CATEGORY_MUTATION);
+
+    const handleCreateCategory = () => {
+        createCategory({
+            variables: {
+                input: {
+                    name: "pear",
+                },
+            },
+        });
+    };
+    // const [createProduct, { data, loading, error }] = useMutation(CREATE_PRODUCT_MUTATION);
+
+    // const handleCreateProduct = () => {
+    // createProduct({
+    //     variables: {
+    //     input: {
+    //         name: "maximum",
+    //         price: 500.0,
+    //         description: "",
+    //     },
+    //     },
+    // });
+    // };
 
     const handleClickOpenDialog = () => {
         setOpenDialog(true);
@@ -120,7 +145,17 @@ export default function ProductDrawerCpn({ open, openDrawer }: ProductDrawerProp
                         event.preventDefault();
                         const formData = new FormData(event.currentTarget);
                         const formJson = Object.fromEntries((formData as any).entries());
+
+                        handleCreateCategory();
+                        if (loading) {
+                            console.log('loading');
+                        };
+                        if (error) {
+                            console.log('error');
+
+                        }
                         console.log(formJson);
+
                         // handleCloseDialog();
                     },
                 }}

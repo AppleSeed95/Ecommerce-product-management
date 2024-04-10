@@ -16,23 +16,37 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import LinearProgress from '@mui/material/LinearProgress';
 import TextField from '@mui/material/TextField';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { styled } from '@mui/material/styles';
 import Skeleton from '@mui/material/Skeleton';
-import LinearProgress from '@mui/material/LinearProgress';
 import { useMutation } from '@apollo/client';
 import { CREATE_CATEGORY_MUTATION } from '../../graphql/mutations';
 import { CREATE_PRODUCT_MUTATION } from '../../graphql/mutations';
+import BorderAllIcon from '@mui/icons-material/BorderAll';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import { pink } from '@mui/material/colors';
+
+
 
 interface ProductDrawerProps {
     open: boolean;
+    categories: {
+        name: string;
+        description: string;
+    }[];
     openDrawer: (val: boolean) => void;
 }
 
-export default function ProductDrawerCpn({ open, openDrawer }: ProductDrawerProps) {
+export default function ProductDrawerCpn({ open, openDrawer, categories }: ProductDrawerProps) {
     const [openDialog, setOpenDialog] = React.useState(false);
+    const [openDeleteDlg, setOpenDeleteDlg] = React.useState(false);
+    const [currentCategory, setCurrentCategory] = React.useState(0);
     const [isLoading, setIsLoading] = React.useState(false)
+    const [editMode, setEditMode] = React.useState(false)
     const [tempImageSrc, setTempImageSrc] = React.useState<string | ArrayBuffer | null>(null);
     const [createCategory, { data, loading, error }] = useMutation(CREATE_CATEGORY_MUTATION);
 
@@ -60,6 +74,7 @@ export default function ProductDrawerCpn({ open, openDrawer }: ProductDrawerProp
     // };
 
     const handleClickOpenDialog = () => {
+        setEditMode(false);
         setOpenDialog(true);
     };
 
@@ -68,31 +83,46 @@ export default function ProductDrawerCpn({ open, openDrawer }: ProductDrawerProp
     };
     const list = () => (
         !isLoading ?
-            <div className='h-padding'>
+            <div className='h-padding' style={{ marginTop: '30px' }}>
                 <Box sx={{ width: 300 }}
                     role="presentation"
                 >
                     <List>
-                        {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-                            <ListItem key={text} disablePadding>
+                        {categories.map((aCategory, index) => (
+                            <ListItem key={aCategory.name} disablePadding>
                                 <ListItemButton>
                                     <ListItemIcon>
-                                        {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                                        <BorderAllIcon />
                                     </ListItemIcon>
-                                    <ListItemText primary={text} />
+                                    <ListItemText primary={aCategory.name} />
                                 </ListItemButton>
-                            </ListItem>
-                        ))}
-                    </List>
-                    <List>
-                        {['All mail', 'Trash', 'Spam'].map((text, index) => (
-                            <ListItem key={text} disablePadding>
-                                <ListItemButton>
-                                    <ListItemIcon>
-                                        {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                                    </ListItemIcon>
-                                    <ListItemText primary={text} />
-                                </ListItemButton>
+                                <IconButton
+
+                                    id="fade-button"
+                                    aria-controls={open ? 'fade-menu' : undefined}
+                                    aria-haspopup="true"
+                                    aria-expanded={open ? 'true' : undefined}
+                                    onClick={() => {
+                                        setEditMode(true);
+                                        setCurrentCategory(index)
+                                        setOpenDialog(true);
+                                    }}
+                                >
+                                    <EditIcon />
+                                </IconButton>
+                                <IconButton
+
+                                    id="fade-button"
+                                    aria-controls={open ? 'fade-menu' : undefined}
+                                    aria-haspopup="true"
+                                    aria-expanded={open ? 'true' : undefined}
+                                    onClick={() => {
+                                        setCurrentCategory(index)
+                                        setOpenDeleteDlg(true);
+                                    }}
+                                >
+                                    <DeleteIcon sx={{ color: pink[500] }} />
+                                </IconButton>
                             </ListItem>
                         ))}
                     </List>
@@ -146,7 +176,7 @@ export default function ProductDrawerCpn({ open, openDrawer }: ProductDrawerProp
                         const formData = new FormData(event.currentTarget);
                         const formJson = Object.fromEntries((formData as any).entries());
 
-                        handleCreateCategory();
+                        // handleCreateCategory();
                         if (loading) {
                             console.log('loading');
                         };
@@ -161,10 +191,10 @@ export default function ProductDrawerCpn({ open, openDrawer }: ProductDrawerProp
                 }}
             >
                 <LinearProgress />
-                <DialogTitle>Add Product Category</DialogTitle>
+                <DialogTitle>{`${editMode ? 'Edit' : 'Add'}Product Category`}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        To add product category, please enter category info here.
+                        {`To ${editMode ? 'Edit' : 'Add'} product category, please enter category info here.`}
                     </DialogContentText>
                     <div style={{ marginTop: '10px', marginBottom: '10px', display: 'flex' }}>
                         <Button
@@ -181,7 +211,7 @@ export default function ProductDrawerCpn({ open, openDrawer }: ProductDrawerProp
                                 accept="image/*"
                                 onChange={(event) => {
                                     const file = event.target.files && event.target.files[0];
-
+                                    console.log(file)
                                     if (file) {
                                         // Use FileReader to read the file and set it as temp image source
                                         const reader = new FileReader();
@@ -192,7 +222,8 @@ export default function ProductDrawerCpn({ open, openDrawer }: ProductDrawerProp
                                         };
                                         reader.readAsDataURL(file);
                                     }
-                                }} />
+                                }}
+                            />
                         </Button>
                         {tempImageSrc ?
                             <img src={tempImageSrc?.toString()} alt="Preview" className='category_img' />
@@ -201,6 +232,7 @@ export default function ProductDrawerCpn({ open, openDrawer }: ProductDrawerProp
                     </div>
                     <div className='v-margin'>
                         <TextField
+                            defaultValue={editMode ? categories[currentCategory].name : ''}
                             autoFocus
                             required
                             margin="dense"
@@ -213,6 +245,7 @@ export default function ProductDrawerCpn({ open, openDrawer }: ProductDrawerProp
                     </div>
                     <div className='v-margin'>
                         <TextField
+                            defaultValue={editMode ? categories[currentCategory].description : ''}
                             required
                             variant="standard"
                             fullWidth
@@ -226,7 +259,28 @@ export default function ProductDrawerCpn({ open, openDrawer }: ProductDrawerProp
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseDialog}  >Cancel</Button>
-                    <Button type="submit" > Add</Button>
+                    <Button type="submit" > {editMode ? 'Edit' : 'Add'}</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog
+                open={openDeleteDlg}
+                onClose={() => setOpenDeleteDlg(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    {`Are you sure want to delete ${categories[currentCategory].name} category?`}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        If you delete Category, all products in that category will be deleted.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenDeleteDlg(false)}>Cancel</Button>
+                    <Button onClick={() => setOpenDeleteDlg(false)} autoFocus>
+                        Delete
+                    </Button>
                 </DialogActions>
             </Dialog>
         </div >

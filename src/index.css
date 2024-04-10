@@ -26,12 +26,13 @@ body{
 }
 .carousel-container{
   display: flex;
-  background-image: linear-gradient(to right , rgb(255, 147, 255),rgb(113, 203, 255));
+  background-image: linear-gradient(to right , rgba(255, 147, 255, 0.449),rgba(113, 203, 255, 0.515));
+  background-color: rgb(126, 126, 126);
   padding: 10px;
   padding-bottom: 0px;
-  margin: 10px;
+  /* margin: 10px;
   margin-left: 100px;
-  margin-right: 100px;
+  margin-right: 100px; */
   border-radius: 30px;
   color: white;
 }
@@ -42,9 +43,9 @@ body{
   padding: 30px;
 }
 .Mui-selected{
-  border-radius: 30px !important;
   color: white !important;
-  background-color: rgb(196, 196, 196) !important;
+  /* border-radius: 10px !important; */
+  background-color: rgb(167, 167, 167) !important;
 }
 .editBtn{
   position: fixed;
@@ -67,6 +68,12 @@ h1{
   width: 150px;
   height: 150px;
   border-radius: 50%;
+}
+.product_img{
+  padding: 10px;
+  width: 250px;
+  height: 170px;
+  border: 1px dashed gray;
 }
 .v-margin{
   margin-top: 15px;
